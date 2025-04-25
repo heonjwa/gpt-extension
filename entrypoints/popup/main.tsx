@@ -5,6 +5,8 @@ import './style.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <div>>
+      Hello
+    </div>
   </React.StrictMode>,
 );
