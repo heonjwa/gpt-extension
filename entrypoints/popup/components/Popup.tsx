@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { estimateTokenCount, optimizeTokens } from './TokenService';
 
 const Popup: React.FC = () => {
   const [chatGPTText, setChatGPTText] = useState<string>('');
   const [paraphrasedText, setParaphrasedText] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [tokenStats, setTokenStats] = useState<{original: number, optimized: number, savings: number, percentage: string} | null>(null);
 
   const fetchChatGPTInput = async (): Promise<void> => {
     setIsLoading(true);
@@ -57,14 +59,31 @@ const Popup: React.FC = () => {
     
     setIsLoading(true);
     
-    // Mock paraphrasing - replace with your actual implementation
-    setTimeout(() => {
-      const words = chatGPTText.split(' ');
-      const paraphrased = `${words.slice(0, Math.ceil(words.length / 2)).join(' ')}`;
-      setParaphrasedText(paraphrased);
+    try {
+      // Use our token optimization service
+      const optimized = optimizeTokens(chatGPTText);
+      setParaphrasedText(optimized);
+      
+      // Calculate token statistics
+      const originalTokens = estimateTokenCount(chatGPTText);
+      const optimizedTokens = estimateTokenCount(optimized);
+      const tokenSavings = originalTokens - optimizedTokens;
+      const savingsPercentage = ((tokenSavings / originalTokens) * 100).toFixed(1);
+      
+      setTokenStats({
+        original: originalTokens,
+        optimized: optimizedTokens,
+        savings: tokenSavings,
+        percentage: savingsPercentage
+      });
+      
+      setMessage(`Text optimized! Saved approximately ${tokenSavings} tokens (${savingsPercentage}%)`);
+    } catch (error) {
+      console.error('Error optimizing text:', error);
+      setMessage('Error during optimization');
+    } finally {
       setIsLoading(false);
-      setMessage('Text paraphrased!');
-    }, 1000);
+    }
   };
 
   const replaceChatGPTInput = async (): Promise<void> => {
@@ -168,19 +187,36 @@ const Popup: React.FC = () => {
         onClick={handleParaphrase}
         disabled={isLoading || !chatGPTText}
       >
-        Paraphrase
+        Optimize Tokens
       </button>
       
       {paraphrasedText && (
         <>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Paraphrased Text:
+              Optimized Text:
             </label>
             <div className="p-3 bg-gray-100 rounded-md text-gray-800 text-sm">
               {paraphrasedText}
             </div>
           </div>
+          
+          {tokenStats && (
+            <div className="mb-4 text-xs bg-gray-50 p-2 rounded border border-gray-200">
+              <div className="flex justify-between mb-1">
+                <span>Original tokens:</span>
+                <span className="font-medium">{tokenStats.original}</span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span>Optimized tokens:</span>
+                <span className="font-medium">{tokenStats.optimized}</span>
+              </div>
+              <div className="flex justify-between text-green-600">
+                <span>Tokens saved:</span>
+                <span className="font-medium">{tokenStats.savings} ({tokenStats.percentage}%)</span>
+              </div>
+            </div>
+          )}
           
           <button
             className={`w-full py-2 px-4 mb-4 rounded-md font-medium ${
