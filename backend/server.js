@@ -8,7 +8,7 @@ require('dotenv').config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors());
@@ -16,6 +16,14 @@ app.use(express.json());
 
 // Routes
 app.use('/api', paraphraseRouter);
+
+app.use((err, req, res, next) => {
+  console.error('Global error handler caught:', err);
+  res.status(500).json({
+    success: false,
+    error: 'Server error: ' + (err.message || 'Unknown error')
+  });
+});
 
 // Home route
 app.get('/', (req, res) => {

@@ -51,7 +51,7 @@ const Popup: React.FC = () => {
     }
   };
 
-  const handleParaphrase = (): void => {
+  const handleParaphrase = async (): Promise<void> => {
     if (!chatGPTText.trim()) {
       setMessage('Please fetch or enter some text first');
       return;
@@ -60,27 +60,39 @@ const Popup: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Use our token optimization service
-      const optimized = optimizeTokens(chatGPTText);
-      setParaphrasedText(optimized);
+      // Use our token optimization service (now API-based)
+      const result = await optimizeTokens(chatGPTText);
+      setParaphrasedText(result.optimized);
       
-      // Calculate token statistics
-      const originalTokens = estimateTokenCount(chatGPTText);
-      const optimizedTokens = estimateTokenCount(optimized);
-      const tokenSavings = originalTokens - optimizedTokens;
-      const savingsPercentage = ((tokenSavings / originalTokens) * 100).toFixed(1);
-      
-      setTokenStats({
-        original: originalTokens,
-        optimized: optimizedTokens,
-        savings: tokenSavings,
-        percentage: savingsPercentage
-      });
-      
-      setMessage(`Text optimized! Saved approximately ${tokenSavings} tokens (${savingsPercentage}%)`);
+      // Get token statistics from the API response
+      if (result.tokenMetrics) {
+        setTokenStats({
+          original: result.tokenMetrics.originalTokenCount,
+          optimized: result.tokenMetrics.simplifiedTokenCount,
+          savings: result.tokenMetrics.tokensSaved,
+          percentage: result.tokenMetrics.percentSaved.toFixed(1)
+        });
+        
+        setMessage(`Text optimized! Saved approximately ${result.tokenMetrics.tokensSaved} tokens (${result.tokenMetrics.percentSaved.toFixed(1)}%)`);
+      } else {
+        // Fallback to local estimation if API didn't return metrics
+        const originalTokens = await estimateTokenCount(chatGPTText);
+        const optimizedTokens = await estimateTokenCount(result.optimized);
+        const tokenSavings = originalTokens - optimizedTokens;
+        const savingsPercentage = ((tokenSavings / originalTokens) * 100).toFixed(1);
+        
+        setTokenStats({
+          original: originalTokens,
+          optimized: optimizedTokens,
+          savings: tokenSavings,
+          percentage: savingsPercentage
+        });
+        
+        setMessage(`Text optimized! Saved approximately ${tokenSavings} tokens (${savingsPercentage}%)`);
+      }
     } catch (error) {
       console.error('Error optimizing text:', error);
-      setMessage('Error during optimization');
+      setMessage('Error during optimization. Is the API server running?');
     } finally {
       setIsLoading(false);
     }

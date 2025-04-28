@@ -12,4 +12,7 @@ export default defineConfig({
       permissions: ['activeTab', 'contextMenus', 'storage', "scripting","tabs", "declarativeNetRequest"],
     };
   },
+  dev: {
+    port: 5173, // Specify a port for wxt to use
+  }
 });

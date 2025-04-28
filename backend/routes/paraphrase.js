@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * @route   POST /api/paraphrase
- * @desc    Paraphrase a text string
+ * @desc    Paraphrase a text string and return token metrics
  * @access  Public
  */
 router.post('/paraphrase', async (req, res) => {
@@ -20,13 +20,14 @@ router.post('/paraphrase', async (req, res) => {
       });
     }
     
-    // Get paraphrased text
-    const paraphrasedText = await paraphraseService.simplifyText(text);
+    // Get paraphrased text with token metrics
+    const result = await paraphraseService.simplifyText(text);
     
     res.status(200).json({
       success: true,
       original: text,
-      paraphrased: paraphrasedText
+      paraphrased: result.simplifiedText,
+      tokenMetrics: result.tokenMetrics
     });
   } catch (error) {
     console.error('Error paraphrasing text:', error);
@@ -47,17 +48,17 @@ router.post('/phrases', async (req, res) => {
     const { original, simplified, category } = req.body;
     
     // Validate input
-    if (!original || !simplified || !category) {
+    if (!original || category === undefined) {
       return res.status(400).json({
         success: false,
-        error: 'Please provide original phrase, simplified phrase, and category'
+        error: 'Please provide original phrase and category'
       });
     }
     
     // Create new phrase
     const phrase = await paraphraseService.createPhrase({
       original,
-      simplified,
+      simplified: simplified || '', // Allow empty string
       category
     });
     

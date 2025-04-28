@@ -1,11 +1,21 @@
 const Phrase = require('../models/Phrase');
+const { encode } = require('gpt-tokenizer');
 
 /**
  * Paraphrase service that simplifies text based on MongoDB phrases
+ * Now with token counting
  */
+
+const countTokens = (text) => {
+  const tokens = encode(text);
+  return tokens.length;
+};
 
 const simplifyText = async (text) => {
   try {
+    // Count tokens in the original text
+    const originalTokenCount = countTokens(text);
+    
     // Get all phrases from the database
     const phrases = await Phrase.find();
     
@@ -35,7 +45,24 @@ const simplifyText = async (text) => {
       .replace(/\s+/g, ' ')
       .trim();
     
-    return simplifiedText;
+    // Count tokens in the simplified text
+    const simplifiedTokenCount = countTokens(simplifiedText);
+    
+    // Calculate tokens saved
+    const tokensSaved = originalTokenCount - simplifiedTokenCount;
+    const percentSaved = originalTokenCount > 0 
+      ? Math.round((tokensSaved / originalTokenCount) * 100) 
+      : 0;
+    
+    return {
+      simplifiedText,
+      tokenMetrics: {
+        originalTokenCount,
+        simplifiedTokenCount,
+        tokensSaved,
+        percentSaved
+      }
+    };
   } catch (error) {
     console.error('Error in simplifyText service:', error);
     throw error;
