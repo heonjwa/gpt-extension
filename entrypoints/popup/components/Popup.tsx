@@ -180,7 +180,7 @@ const Popup: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </div>
-        <h1 className="text-lg font-semibold ml-2 text-gray-800">ChatGPT Helper</h1>
+        <h1 className="text-lg font-semibold ml-2 text-gray-800">GPTree</h1>
       </div>
       
       {message && (
@@ -273,7 +273,7 @@ const Popup: React.FC = () => {
       )}
       
       <div className="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-500 text-center">
-        © ChatGPT Helper Extension
+        © GPTree
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ const NotificationPopup: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 className="text-lg font-semibold ml-2 text-gray-800">ChatGPT Helper</h1>
+        <h1 className="text-lg font-semibold ml-2 text-gray-800">GPTree</h1>
       </div>
       
       <div className="mb-4 p-3 rounded bg-yellow-50 text-gray-700 border border-yellow-200">
@@ -59,7 +59,7 @@ const NotificationPopup: React.FC = () => {
       </div>
       
       <div className="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-500 text-center">
-        © ChatGPT Helper Extension
+        © GPTree
       </div>
     </div>
   );
