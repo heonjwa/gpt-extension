@@ -3,7 +3,7 @@ export default defineBackground({
     chrome.runtime.onInstalled.addListener(() => {
       chrome.contextMenus.create({
         id: 'paraphrase',
-        title: 'Paraphrase with Concise No thank you',
+        title: 'Save Trees with ChatGPTree',
         contexts: ['all'],
       });
     });
