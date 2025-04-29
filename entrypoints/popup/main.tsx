@@ -10,21 +10,27 @@ const App = () => {
   const [showNotification, setShowNotification] = useState(false);
   
   useEffect(() => {
-    // Check if we're on ChatGPT.com and this is the first time showing the popup
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const currentTab = tabs[0];
       if (currentTab && currentTab.url && currentTab.url.includes('chatgpt.com')) {
-        // Check if we've shown the notification before in this session
-        chrome.storage.session.get(['notificationShown'], (result) => {
-          if (!result.notificationShown) {
-            setShowNotification(true);
-            // Mark that we've shown the notification
-            chrome.storage.session.set({ notificationShown: true });
+        // First, check if user opted to not see the notification again
+        chrome.storage.local.get(['dontShowAgain'], (localResult) => {
+          if (localResult.dontShowAgain) {
+            // Respect user's choice — don't show the popup
+            setShowNotification(false);
+            return;
           }
+  
+          // Otherwise, always show the notification and reset the session flag
+          chrome.storage.session.remove('notificationShown', () => {
+            setShowNotification(true);
+            chrome.storage.session.set({ notificationShown: true });
+          });
         });
       }
     });
   }, []);
+  
 
   // Render the appropriate component
   return (
