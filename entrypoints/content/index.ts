@@ -27,7 +27,7 @@ export default defineContentScript({
         const button = document.createElement('button');
         button.type = 'button';
         button.style.backgroundColor = 'transparent';
-        button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        button.style.border = '1px solid #9333EA';
         button.style.borderRadius = '20px'; // Make it more circular
         button.style.cursor = 'pointer';
         button.style.display = 'flex';
