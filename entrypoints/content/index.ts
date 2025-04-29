@@ -2,6 +2,10 @@ export default defineContentScript({
   matches: ['*://*/*'],
   main() {
     console.log('Content script initialized');
+    function getChatGPTInput() {
+      const chatGPTInput = document.querySelector('div[contenteditable="true"][id="prompt-textarea"]');
+      return chatGPTInput;
+    }
 
     // Function to create and add the button
     function addCustomButton() {
@@ -10,21 +14,75 @@ export default defineContentScript({
       // Check if footer exists and our button doesn't already exist
       if (footerActionsDiv && !document.getElementById('my-custom-button')) {
         console.log("Footer actions div found, adding button");
+        
+        // Create button container to match ChatGPT's button structure
+        const buttonContainer = document.createElement('div');
+        buttonContainer.id = 'my-custom-button';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.alignItems = 'center';
+        buttonContainer.style.justifyContent = 'center';
+        buttonContainer.style.margin = '0 5px';
+        
+        // Create the button element with circular border
         const button = document.createElement('button');
-        button.id = 'my-custom-button'; // Add an ID to easily check if it exists
-        button.innerText = 'My Button';
-        button.style.padding = '8px 12px';
-        button.style.backgroundColor = '#4CAF50';
-        button.style.color = 'white';
-        button.style.border = 'none';
-        button.style.borderRadius = '4px';
+        button.type = 'button';
+        button.style.backgroundColor = 'transparent';
+        button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        button.style.borderRadius = '20px'; // Make it more circular
         button.style.cursor = 'pointer';
-
-        button.addEventListener('click', () => {
-          console.log('Button clicked');
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
+        button.style.padding = '6px 12px';
+        button.style.color = '#c5c5d2';
+        button.style.fontSize = '14px';
+        button.style.fontFamily = 'inherit';
+        button.style.gap = '6px'; // Space between icon and text
+        
+        // Create SVG for icon
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '16');
+        svg.setAttribute('height', '16');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.style.color = '#c5c5d2';
+        
+        // Create an "X" icon (for "No thank you")
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path1.setAttribute('d', 'M18 6L6 18');
+        const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path2.setAttribute('d', 'M6 6L18 18');
+        
+        svg.appendChild(path1);
+        svg.appendChild(path2);
+        
+        // Create span for text
+        const text = document.createElement('span');
+        text.textContent = 'No thank you';
+        
+        // Add hover effect
+        button.addEventListener('mouseover', () => {
+          button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
         });
-
-        footerActionsDiv.appendChild(button);
+        button.addEventListener('mouseout', () => {
+          button.style.backgroundColor = 'transparent';
+        });
+        
+        button.addEventListener('click', () => {
+          const chatGPTInput = getChatGPTInput();
+          if (chatGPTInput) {
+            chatGPTInput.textContent = 'No thank you';
+          }
+        });
+        
+        button.appendChild(svg);
+        button.appendChild(text);
+        buttonContainer.appendChild(button);
+        footerActionsDiv.appendChild(buttonContainer);
         return true;
       }
       return false;
