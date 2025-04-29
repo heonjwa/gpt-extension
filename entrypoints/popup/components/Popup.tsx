@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { estimateTokenCount, optimizeTokens } from './TokenService';
 
 const Popup: React.FC = () => {
@@ -6,10 +7,16 @@ const Popup: React.FC = () => {
   const [paraphrasedText, setParaphrasedText] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
   const [tokenStats, setTokenStats] = useState<{original: number, optimized: number, savings: number, percentage: string} | null>(null);
 
+  // Automatically fetch text when popup opens
+  useEffect(() => {
+    fetchChatGPTInput();
+  }, []);
+
   const fetchChatGPTInput = async (): Promise<void> => {
-    setIsLoading(true);
+    setIsFetching(true);
     setMessage('');
     
     try {
@@ -19,7 +26,7 @@ const Popup: React.FC = () => {
       
       if (!activeTab.id) {
         setMessage('No active tab found');
-        setIsLoading(false);
+        setIsFetching(false);
         return;
       }
 
@@ -28,7 +35,7 @@ const Popup: React.FC = () => {
         activeTab.id, 
         { action: 'getChatGPTInput' },
         (response) => {
-          setIsLoading(false);
+          setIsFetching(false);
           
           if (chrome.runtime.lastError) {
             console.error('Error:', chrome.runtime.lastError);
@@ -38,7 +45,11 @@ const Popup: React.FC = () => {
           
           if (response && response.success) {
             setChatGPTText(response.text);
-            setMessage('Text fetched successfully!');
+            if (response.text) {
+              setMessage('Text fetched successfully! Click "Reduce Tokens" to optimize.');
+            } else {
+              setMessage('No text found in the ChatGPT input. Try typing something first.');
+            }
           } else {
             setMessage(response?.message || 'Could not get text from the page');
           }
@@ -47,24 +58,26 @@ const Popup: React.FC = () => {
     } catch (error) {
       console.error('Error fetching text:', error);
       setMessage('An unexpected error occurred');
-      setIsLoading(false);
+      setIsFetching(false);
     }
   };
 
   const handleParaphrase = async (): Promise<void> => {
     if (!chatGPTText.trim()) {
-      setMessage('Please fetch or enter some text first');
+      setMessage('Please make sure there is text in the ChatGPT input box');
+      toast.error('No text to optimize');
       return;
     }
     
     setIsLoading(true);
+    setMessage('Optimizing your text...');
     
     try {
-      // Use our token optimization service (now API-based)
+      // Use our token optimization service
       const result = await optimizeTokens(chatGPTText);
       setParaphrasedText(result.optimized);
       
-      // Get token statistics from the API response
+      // Get token statistics
       if (result.tokenMetrics) {
         setTokenStats({
           original: result.tokenMetrics.originalTokenCount,
@@ -73,9 +86,15 @@ const Popup: React.FC = () => {
           percentage: result.tokenMetrics.percentSaved.toFixed(1)
         });
         
-        setMessage(`Text optimized! Saved approximately ${result.tokenMetrics.tokensSaved} tokens (${result.tokenMetrics.percentSaved.toFixed(1)}%)`);
+        if (result.tokenMetrics.tokensSaved > 0) {
+          toast.success(`Saved ${result.tokenMetrics.tokensSaved} tokens!`);
+          setMessage(`Text optimized! Review changes and click "Replace in ChatGPT" to apply.`);
+        } else {
+          toast('Your text is already well optimized');
+          setMessage('No significant token savings found. Your prompt is already well optimized!');
+        }
       } else {
-        // Fallback to local estimation if API didn't return metrics
+        // Fallback to local estimation
         const originalTokens = await estimateTokenCount(chatGPTText);
         const optimizedTokens = await estimateTokenCount(result.optimized);
         const tokenSavings = originalTokens - optimizedTokens;
@@ -88,11 +107,12 @@ const Popup: React.FC = () => {
           percentage: savingsPercentage
         });
         
-        setMessage(`Text optimized! Saved approximately ${tokenSavings} tokens (${savingsPercentage}%)`);
+        setMessage(`Text optimized! Review and click "Replace in ChatGPT" if you approve.`);
       }
     } catch (error) {
       console.error('Error optimizing text:', error);
       setMessage('Error during optimization. Is the API server running?');
+      toast.error('Optimization failed');
     } finally {
       setIsLoading(false);
     }
@@ -100,12 +120,13 @@ const Popup: React.FC = () => {
 
   const replaceChatGPTInput = async (): Promise<void> => {
     if (!paraphrasedText.trim()) {
-      setMessage('Please paraphrase the text first');
+      setMessage('Please optimize the text first');
+      toast.error('No optimized text to replace');
       return;
     }
     
     setIsLoading(true);
-    setMessage('');
+    setMessage('Replacing text in ChatGPT...');
     
     try {
       // Get the active tab
@@ -135,15 +156,18 @@ const Popup: React.FC = () => {
           }
           
           if (response && response.success) {
-            setMessage('Text replaced in ChatGPT!');
+            setMessage('Text replaced in ChatGPT! You can now send your optimized prompt.');
+            toast.success('Text replaced successfully');
           } else {
             setMessage(response?.message || 'Could not replace text');
+            toast.error('Failed to replace text');
           }
         }
       );
     } catch (error) {
       console.error('Error replacing text:', error);
       setMessage('An unexpected error occurred');
+      toast.error('Replacement failed');
       setIsLoading(false);
     }
   };
@@ -165,41 +189,45 @@ const Popup: React.FC = () => {
         </div>
       )}
       
-      <button
-        className={`w-full py-2 px-4 mb-4 rounded-md font-medium ${
-          isLoading 
-            ? 'bg-purple-400 text-white cursor-wait' 
-            : 'bg-purple-600 hover:bg-purple-700 text-white transition duration-200'
-        } focus:outline-none focus:ring-2 focus:ring-purple-500`}
-        onClick={fetchChatGPTInput}
-        disabled={isLoading}
-      >
-        {isLoading ? 'Working...' : 'Fetch from ChatGPT'}
-      </button>
+      {/* Status indicator */}
+      {isFetching && (
+        <div className="flex items-center justify-center mb-4 text-sm text-gray-600">
+          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Fetching text from ChatGPT...
+        </div>
+      )}
       
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Original Text:
-        </label>
-        <textarea
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-          rows={4}
-          value={chatGPTText}
-          onChange={(e) => setChatGPTText(e.target.value)}
-          placeholder="Text will appear here..."
-        />
+        <div className="flex justify-between mb-1">
+          <label className="block text-sm font-medium text-gray-700">
+            Current ChatGPT Text:
+          </label>
+          <button 
+            className="text-xs text-purple-600 hover:text-purple-800"
+            onClick={fetchChatGPTInput}
+            disabled={isFetching}
+          >
+            {isFetching ? 'Fetching...' : 'Refresh'}
+          </button>
+        </div>
+        <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm text-gray-700 max-h-28 overflow-y-auto">
+          {chatGPTText || (isFetching ? 'Loading...' : 'No text found in ChatGPT input')}
+        </div>
       </div>
       
       <button
         className={`w-full py-2 px-4 mb-4 rounded-md font-medium ${
-          isLoading || !chatGPTText
+          isLoading || !chatGPTText || isFetching
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
             : 'bg-green-600 hover:bg-green-700 text-white transition duration-200'
         } focus:outline-none focus:ring-2 focus:ring-green-500`}
         onClick={handleParaphrase}
-        disabled={isLoading || !chatGPTText}
+        disabled={isLoading || !chatGPTText || isFetching}
       >
-        Optimize Tokens
+        {isLoading ? 'Optimizing...' : 'Reduce Tokens'}
       </button>
       
       {paraphrasedText && (
@@ -208,7 +236,7 @@ const Popup: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Optimized Text:
             </label>
-            <div className="p-3 bg-gray-100 rounded-md text-gray-800 text-sm">
+            <div className="p-3 bg-gray-100 rounded-md text-gray-800 text-sm max-h-28 overflow-y-auto">
               {paraphrasedText}
             </div>
           </div>
@@ -223,7 +251,7 @@ const Popup: React.FC = () => {
                 <span>Optimized tokens:</span>
                 <span className="font-medium">{tokenStats.optimized}</span>
               </div>
-              <div className="flex justify-between text-green-600">
+              <div className={`flex justify-between ${tokenStats.savings > 0 ? 'text-green-600' : 'text-gray-600'}`}>
                 <span>Tokens saved:</span>
                 <span className="font-medium">{tokenStats.savings} ({tokenStats.percentage}%)</span>
               </div>
@@ -239,7 +267,7 @@ const Popup: React.FC = () => {
             onClick={replaceChatGPTInput}
             disabled={isLoading}
           >
-            Replace in ChatGPT
+            {isLoading ? 'Replacing...' : 'Replace in ChatGPT'}
           </button>
         </>
       )}

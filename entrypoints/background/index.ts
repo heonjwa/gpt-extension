@@ -10,8 +10,6 @@ export default defineBackground({
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       if (info.menuItemId === 'paraphrase') {
-        // find accurate textbox in the current tab
-        // get the selected text and paraphrase it
         chrome.tabs.sendMessage(tab?.id!, 
           { action: 'getSelectedText' },
           function (response) {
@@ -21,14 +19,16 @@ export default defineBackground({
       }
     });
 
+    // Listen for when the user visits ChatGPT.com
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      // Make sure the page is completely loaded
-      if (changeInfo.status === 'complete' && tab.url) {
-        // Check if the URL contains your target website
-        if (tab.url.includes('chatgpt.com')) {
-          // Open your popup programmatically
-          chrome.action.openPopup();
-        }
+      if (changeInfo.status === 'complete' && tab.url && tab.url.includes('chatgpt.com')) {
+        // Check if we should show the notification
+        chrome.storage.session.get(['notificationShown'], (result) => {
+          if (!result.notificationShown) {
+            // Show the popup
+            chrome.action.openPopup();
+          }
+        });
       }
     });
   }
