@@ -75,7 +75,7 @@ export const estimateTokenCount = async (text: string): Promise<number> => {
     if (!data.success) {
       return fallbackEstimateTokenCount(text);
     }
-
+    
     return data.tokenMetrics.originalTokenCount;
   } catch (error) {
     return fallbackEstimateTokenCount(text);

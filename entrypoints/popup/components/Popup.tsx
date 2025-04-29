@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { estimateTokenCount, optimizeTokens } from './TokenService';
+import TreeVisualization from './TreeVisualization';
+import { resetUserStats, updateTokenSavings } from '@/entrypoints/shared/StatsService';
 
 const Popup: React.FC = () => {
   const [chatGPTText, setChatGPTText] = useState<string>('');
@@ -9,6 +11,9 @@ const Popup: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFetching, setIsFetching] = useState<boolean>(true);
   const [tokenStats, setTokenStats] = useState<{original: number, optimized: number, savings: number, percentage: string} | null>(null);
+  const [treeRefreshTrigger, setTreeRefreshTrigger] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'optimize' | 'stats'>('optimize');
+
 
   // Automatically fetch text when popup opens
   useEffect(() => {
@@ -87,6 +92,8 @@ const Popup: React.FC = () => {
         });
         
         if (result.tokenMetrics.tokensSaved > 0) {
+          const updatedStats = await updateTokenSavings(result.tokenMetrics.tokensSaved);
+          setTreeRefreshTrigger(prev => prev + 1);
           toast.success(`Saved ${result.tokenMetrics.tokensSaved} tokens!`);
           setMessage(`Text optimized! Review changes and click "Replace in ChatGPT" to apply.`);
         } else {
@@ -182,8 +189,32 @@ const Popup: React.FC = () => {
         </div>
         <h1 className="text-lg font-semibold ml-2 text-gray-800">GPTree</h1>
       </div>
+      <div className="flex border-b border-gray-200 mb-4">
+        <button
+          className={`py-2 px-4 font-medium text-sm flex-1 ${
+            activeTab === 'optimize'
+              ? 'text-purple-600 border-b-2 border-purple-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('optimize')}
+        >
+          Optimize
+        </button>
+        <button
+          className={`py-2 px-4 font-medium text-sm flex-1 ${
+            activeTab === 'stats'
+              ? 'text-green-600 border-b-2 border-green-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setActiveTab('stats')}
+        >
+          Impact
+        </button>
+      </div>
       
-      {message && (
+      {activeTab === 'optimize' && (
+        <>
+          {message && (
         <div className="mb-4 text-sm px-3 py-2 rounded bg-blue-50 text-blue-700">
           {message}
         </div>
@@ -270,6 +301,33 @@ const Popup: React.FC = () => {
             {isLoading ? 'Replacing...' : 'Replace in ChatGPT'}
           </button>
         </>
+      )}
+        </>
+      )}
+      
+      {activeTab === 'stats' && (
+        <div className="animate-fadeIn">
+          <TreeVisualization refreshTrigger={treeRefreshTrigger} />
+          
+          <div className="mt-4 text-sm text-gray-600">
+            <p className="mb-2">By reducing tokens, you're helping to minimize computational resources and energy consumption needed for AI processing.</p>
+            
+            <p>Every 100 tokens saved grows a new virtual tree in your forest!</p>
+          </div>
+          
+          <button
+            className="mt-4 w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-md transition duration-200"
+            onClick={async () => {
+              if (window.confirm('Are you sure you want to reset your stats? This cannot be undone.')) {
+                await resetUserStats();
+                setTreeRefreshTrigger(prev => prev + 1);
+                toast.success('Stats reset successfully');
+              }
+            }}
+          >
+            Reset Stats
+          </button>
+        </div>
       )}
       
       <div className="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-500 text-center">

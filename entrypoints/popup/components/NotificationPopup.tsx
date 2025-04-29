@@ -27,9 +27,8 @@ const NotificationPopup: React.FC = () => {
         <p className="font-medium mb-2">How to use:</p>
         <ol className="list-decimal list-inside text-sm space-y-2">
           <li>Type your prompt in the ChatGPT input box</li>
-          <li>Click the extension icon in your toolbar</li>
+          <li>Click Optimize or the extension icon in your toolbar</li>
           <li>The extension will automatically optimize your prompt</li>
-          <li>Review the optimized version</li>
           <li>Click "Replace in ChatGPT" if you want to use it</li>
         </ol>
       </div>
