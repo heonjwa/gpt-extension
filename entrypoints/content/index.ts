@@ -51,14 +51,47 @@ export default defineContentScript({
         svg.setAttribute('stroke-linejoin', 'round');
         svg.style.color = '#c5c5d2';
         
-        // Create an "X" icon (for "No thank you")
-        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path1.setAttribute('d', 'M18 6L6 18');
-        const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path2.setAttribute('d', 'M6 6L18 18');
+        // Create a stick figure icon
+        // Head
+        const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        head.setAttribute('cx', '12');
+        head.setAttribute('cy', '5');
+        head.setAttribute('r', '3');
         
-        svg.appendChild(path1);
-        svg.appendChild(path2);
+        // Body
+        const body = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        body.setAttribute('x1', '12');
+        body.setAttribute('y1', '8');
+        body.setAttribute('x2', '12');
+        body.setAttribute('y2', '16');
+        
+        // Arms
+        const arms = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        arms.setAttribute('x1', '8');
+        arms.setAttribute('y1', '12');
+        arms.setAttribute('x2', '16');
+        arms.setAttribute('y2', '12');
+        
+        // Left leg
+        const leftLeg = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        leftLeg.setAttribute('x1', '12');
+        leftLeg.setAttribute('y1', '16');
+        leftLeg.setAttribute('x2', '9');
+        leftLeg.setAttribute('y2', '21');
+        
+        // Right leg
+        const rightLeg = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        rightLeg.setAttribute('x1', '12');
+        rightLeg.setAttribute('y1', '16');
+        rightLeg.setAttribute('x2', '15');
+        rightLeg.setAttribute('y2', '21');
+        
+        // Add all parts to the SVG
+        svg.appendChild(head);
+        svg.appendChild(body);
+        svg.appendChild(arms);
+        svg.appendChild(leftLeg);
+        svg.appendChild(rightLeg);
         
         // Create span for text
         const text = document.createElement('span');
