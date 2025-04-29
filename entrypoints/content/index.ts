@@ -3,6 +3,43 @@ export default defineContentScript({
   main() {
     console.log('Content script initialized');
 
+    // Function to create and add the button
+    function addCustomButton() {
+      const footerActionsDiv = document.querySelector('[data-testid="composer-footer-actions"]');
+      
+      // Check if footer exists and our button doesn't already exist
+      if (footerActionsDiv && !document.getElementById('my-custom-button')) {
+        console.log("Footer actions div found, adding button");
+        const button = document.createElement('button');
+        button.id = 'my-custom-button'; // Add an ID to easily check if it exists
+        button.innerText = 'My Button';
+        button.style.padding = '8px 12px';
+        button.style.backgroundColor = '#4CAF50';
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '4px';
+        button.style.cursor = 'pointer';
+
+        button.addEventListener('click', () => {
+          console.log('Button clicked');
+        });
+
+        footerActionsDiv.appendChild(button);
+        return true;
+      }
+      return false;
+    }
+
+    // Add the button initially
+    addCustomButton();
+
+    // Set up an interval to periodically check if the button exists
+    setInterval(() => {
+      if (!document.getElementById('my-custom-button')) {
+        addCustomButton();
+      }
+    }, 1000); // Check every 1 second
+
     // Listen for messages from the popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log("Message received:", request.action);
@@ -25,7 +62,7 @@ export default defineContentScript({
           sendResponse({ success: false, message: 'Could not find ChatGPT input field' });
         }
       }
-      
+
       // New action to replace text in ChatGPT's input
       if (request.action === 'replaceChatGPTInput' && request.text) {
         console.log("Attempting to replace ChatGPT input text with:", request.text);
