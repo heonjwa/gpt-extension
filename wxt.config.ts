@@ -6,8 +6,8 @@ export default defineConfig({
   manifest: ({ browser, manifestVersion, mode, command }) => {
     return {
       manifest_version: 2,
-      name: 'No Thank You',
-      description: 'Concise No thank you is a Chrome extension that helps you to paraphrase your text in a concise way.',
+      name: 'GPTree',
+      description: 'GPTree is a Chrome extension that helps you to paraphrase your input for ChatGPT to save trees.',
       version: '1.0.0',
       permissions: ['activeTab', 'contextMenus', 'storage', "scripting","tabs", "declarativeNetRequest"],
     };
