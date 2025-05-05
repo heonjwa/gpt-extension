@@ -2,7 +2,7 @@ import { optimizeTokens } from "../popup/components/TokenService";
 import { checkNewTreeMilestone, updateTokenSavings } from "../shared/StatsService";
 
 export default defineContentScript({
-  matches: ["*://*/*"],
+  matches: ["https://chat.openai.com/*", "https://chatgpt.com/*"],
   main() {
     console.log("Content script initialized");
 

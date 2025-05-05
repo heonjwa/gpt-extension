@@ -11,6 +11,12 @@ export default defineConfig({
       version: '1.0.0',
       permissions: ['activeTab', 'storage', "scripting", "declarativeContent", "webNavigation"],
       host_permissions: ["https://chat.openai.com/*"],
+      content_scripts: [
+        {
+          matches: ["https://chat.openai.com/*", "https://chatgpt.com/*"],
+          js: ["content-scripts/content.js"]
+        }
+      ]
     };
   },
 });
