@@ -17,7 +17,6 @@ const TreeVisualization: React.FC<TreeVisualizationProps> = ({ refreshTrigger })
   });
   
   const [treeSize, setTreeSize] = useState(1);
-  const [demoMode, setDemoMode] = useState(true);
   const [clickCount, setClickCount] = useState(0);
   const [localRefreshTrigger, setLocalRefreshTrigger] = useState(0);
   
@@ -65,17 +64,7 @@ const TreeVisualization: React.FC<TreeVisualizationProps> = ({ refreshTrigger })
   return (
     <div className="flex flex-col items-center p-4 bg-green-50 rounded-lg border border-green-100">
       <h3 
-        className="text-lg font-medium text-green-800 mb-2"
-        onClick={() => {
-          setClickCount(prev => {
-            const newCount = prev + 1;
-            if (newCount >= 5) {
-              setDemoMode(true);
-            }
-            return newCount;
-          });
-        }}
-      >
+        className="text-lg font-medium text-green-800 mb-2">
         Your Impact
       </h3>
       
@@ -239,7 +228,7 @@ const TreeVisualization: React.FC<TreeVisualizationProps> = ({ refreshTrigger })
       </div>
       
       {/* Hidden demo button that appears when clicking the impact heading 5 times */}
-      {demoMode && (
+      {/* {demoMode && (
         <button
           className="mt-4 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-xs rounded text-gray-700"
           onClick={async () => {
@@ -251,7 +240,7 @@ const TreeVisualization: React.FC<TreeVisualizationProps> = ({ refreshTrigger })
         >
           +10 Tokens (Demo)
         </button>
-      )}
+      )} */}
     </div>
   );
 };

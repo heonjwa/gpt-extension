@@ -1,13 +1,5 @@
 export default defineBackground({
   main() {
-    chrome.runtime.onInstalled.addListener(() => {
-      chrome.contextMenus.create({
-        id: 'paraphrase',
-        title: 'Save Trees with ChatGPTree',
-        contexts: ['all'],
-      });
-    });
-
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       if (info.menuItemId === 'paraphrase') {
         chrome.tabs.sendMessage(tab?.id!, 
