@@ -9,7 +9,7 @@ export default defineConfig({
       name: 'No Thank You',
       description: 'Concise No thank you is a Chrome extension that helps you to paraphrase your text in a concise way.',
       version: '1.0.0',
-      permissions: ['activeTab', 'contextMenus', 'storage', "scripting","tabs", "declarativeNetRequest"],
+      permissions: ['activeTab', 'storage', "scripting", "declarativeContent", "webNavigation"],
     };
   },
 });
