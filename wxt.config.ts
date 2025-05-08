@@ -9,7 +9,7 @@ export default defineConfig({
       name: 'GPTree',
       description: 'GPTree is a Chrome extension that helps you to paraphrase your input for ChatGPT to save trees.',
       version: '1.0.0',
-      permissions: ['activeTab', 'storage', "scripting", "declarativeContent", "webNavigation"],
+      permissions: ['activeTab', 'storage', "declarativeContent", "webNavigation"],
       host_permissions: ["https://chat.openai.com/*"],
       content_scripts: [
         {
